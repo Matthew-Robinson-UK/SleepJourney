@@ -1,71 +1,165 @@
 import React from 'react';
-import {View, Text, StyleSheet, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { habitList } from '../HabitData';
-import { getNextHabit } from '../Components/GetNextHabit'
-import {Button} from 'react-native-paper';
+import { getNextHabit } from '../Components/GetNextHabit';
+import { Button } from 'react-native-paper';
 import AndroidPrompt from '../AndroidPrompt';
-import NfcManager, {NfcEvents, NfcTech} from 'react-native-nfc-manager';
+import NfcManager, { NfcEvents, NfcTech } from 'react-native-nfc-manager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const images = {
-    'toothbrush': require('../Assets/Images/toothbrush.jpg'),
-}
-
+    'toothbrush': require('../Assets/Images/toothbrush.png'),
+    'water': require('../Assets/Images/water.png'),
+    'charger': require('../Assets/Images/charger.png'),
+};
 
 function Journey(props) {
-    const {route, navigation} = props;
-    const {msg} = route.params;
-  
+    const { route, navigation } = props;
+    const { msg } = route.params;
+
     const lowerCaseMsg = msg.toLowerCase();
-  
-    const imageSource = images[lowerCaseMsg] || require('../Assets/Images/default.jpg');
-  
+    const imageSource = images[lowerCaseMsg] || require('../Assets/Images/default.png');
     const nextHabit = getNextHabit(msg, habitList);
+
+    const [completedHabits, setCompletedHabits] = React.useState([]);
+    const [currentHabit, setCurrentHabit] = React.useState(msg);
 
     const androidPromptRef = React.useRef();
 
-    async function readNdef() {
-        try {  
-          if (Platform.OS === 'android') {
-          androidPromptRef.current.setHintText(`Now scan the ${nextHabit.name} tag`);
-          androidPromptRef.current.setVisible(true);
-          }
-          await NfcManager.requestTechnology(NfcTech.Ndef);
-          const tag = await NfcManager.getTag();
-          navigation.navigate('TagDetailsScreen', {tag});
-        } catch (ex) {
-            androidPromptRef.current.setHintText('Error');
-            console.error(ex);
-        } finally {
-          NfcManager.cancelTechnologyRequest();
-          if (Platform.OS === 'android') {
-          androidPromptRef.current.setVisible(false);
-          }
+    function getHabitStatus(habitName) {
+        if (completedHabits.includes(habitName)) {
+            return 'completed';
+        } else if (habitName === currentHabit) {
+            return 'active';
+        } else {
+            return 'default';
         }
     }
+
+    React.useEffect(() => {
+        const fetchCompletedHabits = async () => {
+            try {
+                const storedHabits = await AsyncStorage.getItem('completedHabits');
+                if (storedHabits) {
+                    setCompletedHabits(JSON.parse(storedHabits));
+                }
+            } catch (error) {
+                console.error("Error fetching completed habits: ", error);
+            }
+        };
     
-  
-        return (
-            <View style={styles.wrapper}>
-                <View style={styles.currentHabitWrapper}>
-                    <Image source={imageSource} style={styles.image} />
-                    <Text style={styles.msg}>{msg}</Text>
-                </View>
-                
-                {nextHabit && (
-                  <View style={styles.nextHabitButton}>
-                    <Button 
-                        mode="contained"  // Changed from "outlined" to "contained"
-                        theme={{ colors: { primary: '#5E4B8B' } }}
-                        style={[styles.btn]} 
-                        labelStyle={{ color: '#FFF' }}  
-                        onPress={() => {readNdef();}}
-                    >
-                        PRESS TO CONTINUE
-                    </Button>
-                  </View>
-                )}
-                <AndroidPrompt ref={androidPromptRef} />
+        fetchCompletedHabits();
+    }, []);
+    
+
+    async function readNdef() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (Platform.OS === 'android') {
+                    androidPromptRef.current.setHintText(`Now scan the ${nextHabit.name} tag`);
+                    androidPromptRef.current.setVisible(true);
+                }
+        
+                await NfcManager.requestTechnology(NfcTech.Ndef);
+                const tag = await NfcManager.getTag();
+        
+                let updatedHabits = [...completedHabits, currentHabit];
+        
+                if (nextHabit.name === habitList[habitList.length - 1].name) {
+                    updatedHabits.push(nextHabit.name); 
+                    await AsyncStorage.setItem('completedHabits', JSON.stringify(updatedHabits));
+                    setCompletedHabits(updatedHabits);
+                    navigation.navigate('CompletedJourneyScreen');
+                } else {
+                    await AsyncStorage.setItem('completedHabits', JSON.stringify(updatedHabits));
+                    setCompletedHabits(updatedHabits);
+                    navigation.navigate('TagDetailsScreen', { tag });
+                }
+    
+                resolve();
+            } catch (ex) {
+                androidPromptRef.current.setHintText('Error');
+                console.error(ex);
+                reject(ex);
+            } finally {
+                NfcManager.cancelTechnologyRequest();
+                if (Platform.OS === 'android') {
+                    androidPromptRef.current.setVisible(false);
+                }
+            }
+        });
+    }
+    
+    
+    
+
+    return (
+        <View style={styles.wrapper}>
+            
+            {/* Progress Tracker */}
+            <View style={styles.progressTracker}>
+                {habitList.map((habit, index) => {
+                    const status = getHabitStatus(habit.name);
+                    let iconSource;
+
+                    switch (status) {
+                        case 'completed':
+                        case 'active':
+                            iconSource = images[habit.name.toLowerCase()];
+                            break;
+                        default: // default state
+                            iconSource = require('../Assets/Images/lock.png');
+                    }
+
+                    return (
+                        <View key={index} style={styles.iconContainer}>
+                            <Image 
+                                source={iconSource} 
+                                style={[styles.habitIcon, status === 'active' ? styles.activeHabitIcon : {}]} 
+                            />
+                            {status === 'completed' && (
+                                <Image 
+                                    source={require('../Assets/Images/tick.png')} 
+                                    style={styles.tickIcon} 
+                                />
+                            )}
+                        </View>
+                    );
+                })}
             </View>
+    
+            <View style={styles.currentHabitWrapper}>
+                <View style={styles.imageWrapper}>
+                    <Image source={imageSource} style={styles.image} />
+                </View>
+                <Text style={styles.msg}>{msg}</Text>
+            </View>
+            
+            {nextHabit && (
+            <View style={styles.nextHabitButton}>
+                <Button
+                    mode="contained"
+                    theme={{ colors: { primary: '#5E4B8B' } }}
+                    style={[styles.btn]}
+                    labelStyle={{ color: '#FFF' }}
+                    onPress={() => {
+                        // Start NFC logic first
+                        readNdef().then(() => {   // Assuming readNdef returns a promise
+                            // Mark the current habit as completed
+                            setCompletedHabits(prevHabits => [...prevHabits, currentHabit]);
+                            // Set the current habit to the next habit
+                            if (nextHabit) {
+                                setCurrentHabit(nextHabit.name);
+                            }
+                        });
+                    }}
+                    >
+                            PRESS TO CONTINUE
+                    </Button>
+            </View>
+        )}
+            <AndroidPrompt ref={androidPromptRef} />
+        </View>
         );
             }
 
@@ -81,13 +175,21 @@ const styles = StyleSheet.create({
           alignItems: 'center',
           justifyContent: 'center',
       },
-      image: {
-        width: 150,
-        height: 150,
-        borderRadius: 25,
+      imageWrapper: {
+        width: 202, // Add 2 pixels for the border width on both sides
+        height: 202,
+        borderRadius: 101,
+        borderWidth: 1,
+        borderColor: '#F5F5F5',
+        justifyContent: 'center',
+        alignItems: 'center',
         marginBottom: 10,
-        resizeMode: 'cover',
-      },
+        backgroundColor: '#D1C4E9',
+    },
+    image: {
+        width: 120,
+        height: 120,
+    },
       msg: {
         fontSize: 30,
         marginTop: 20,
@@ -111,6 +213,43 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         elevation: 2,
       },
+      progressTracker: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        paddingHorizontal: 20,  // Add some padding to separate the icons
+        marginBottom: 20,
+        position: 'absolute',
+        top: 10,
+    },
+    habitIcon: {
+        width: 60,
+        height: 60,
+        resizeMode: 'contain',
+    },
+
+    activeHabitIcon: {
+        borderWidth: 2,
+        borderColor: '#F5F5F5',
+        borderRadius: 30,  // Make this also circular
+    },
+    iconContainer: {
+        position: 'relative', 
+        width: 60,
+        height: 60,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    
+    tickIcon: {
+        position: 'absolute', 
+        width: '100%',
+        height: '100%',
+        resizeMode: 'contain',
+        zIndex: 1, // ensure it's on top
+    },
+    
   });
 
 export default Journey;

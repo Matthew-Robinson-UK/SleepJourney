@@ -3,12 +3,29 @@ import {TouchableOpacity, View, StyleSheet, Linking, Text, Platform} from 'react
 import {Button} from 'react-native-paper';
 import NfcManager, {NfcEvents, NfcTech} from 'react-native-nfc-manager';
 import AndroidPrompt from '.././AndroidPrompt'
-import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { habitList } from '../HabitData';
 
 const Home = ({ navigation }) => {
   const [start, setStart] = React.useState(null);
   const [duration, setDuration] = React.useState(0);
   const androidPromptRef = React.useRef(); // call React.useRef() to obtain a ref object
+
+  function resetCompletedHabits() {
+    try {
+      AsyncStorage.removeItem('completedHabits');
+      // If you maintain the completedHabits state in the Home component or want to do other updates, do so here.
+    } catch (error) {
+      console.error("Error resetting completed habits:", error);
+    }
+  }
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', resetCompletedHabits);
+    
+    return unsubscribe; // Clean up the listener on unmount
+  }, [navigation]);
 
   React.useEffect(() => {
     let count = 5;
@@ -38,40 +55,58 @@ const Home = ({ navigation }) => {
 
   React.useEffect(() => {
     function handleUrl(url) {
-      if (url) {
+      const msg = url.split('://')[1];
+      if (url && msg === habitList[0].name) {
         navigation.navigate('Journey', {
-          msg: url.split('://')[1],
+          msg: msg,
         });
       }
     }
-
+  
     Linking.getInitialURL().then((url) => {
-      handleUrl(url);
+      if (url) handleUrl(url);
     });
-
-    Linking.addEventListener('url', (event) => {
+  
+    const handleEventUrl = (event) => {
       handleUrl(event.url);
-    });
-
+    };
+  
+    Linking.addEventListener('url', handleEventUrl);
+  
     return () => {
-      Linking.removeAllListeners('url');
+      Linking.removeEventListener('url', handleEventUrl);  // Remove specific event listener
     };
   }, [navigation]);
+  
 
   async function readNdef() {
     try {  
+      androidPromptRef.current.setHintText('Scan ' + habitList[0].name + ' to start!');
       if (Platform.OS === 'android') {
-      androidPromptRef.current.setVisible(true);
+        androidPromptRef.current.setVisible(true);
       }
+      
       await NfcManager.requestTechnology(NfcTech.Ndef);
       const tag = await NfcManager.getTag();
+  
+      // Check if the tag message is not the first habit in the habit list
+      const payloadString = String.fromCharCode(...tag.ndefMessage[0].payload).trim();
+      const habitFromPayload = payloadString.split('://')[1];
+
+      if(habitFromPayload !== habitList[0].name) {
+        if (Platform.OS === 'android') {
+          androidPromptRef.current.setHintText('Please scan ' + habitList[0].name + '!');
+        }
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        return;
+      }
       navigation.navigate('TagDetailsScreen', {tag});
     } catch (ex) {
       androidPromptRef.current.setHintText('Error');
     } finally {
       NfcManager.cancelTechnologyRequest();
       if (Platform.OS === 'android') {
-      androidPromptRef.current.setVisible(false);
+        androidPromptRef.current.setVisible(false);
       }
     }
   }
@@ -80,7 +115,7 @@ const Home = ({ navigation }) => {
     <View style={styles.wrapper}>
       <View style={styles.bottom}>
         <Button                 
-                mode="contained"  // Changed from "outlined" to "contained"
+                mode="contained" 
                 theme={{ colors: { primary: '#5E4B8B' } }}
                 style={[styles.btn]} 
                 labelStyle={{ color: '#FFF' }}  
@@ -88,7 +123,7 @@ const Home = ({ navigation }) => {
                 TIME FOR BED
         </Button>
         <Button                 
-                mode="contained"  // Changed from "outlined" to "contained"
+                mode="contained"
                 theme={{ colors: { primary: '#5E4B8B' } }}
                 style={[styles.btn]} 
                 labelStyle={{ color: '#FFF' }}   

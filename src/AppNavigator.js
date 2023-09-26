@@ -10,6 +10,7 @@ import WriteNdefScreen from './Screens/WriteNdefScreen';
 import Screen2 from './Screens/Screen2';
 import Journey from './Screens/Journey';
 import TagDetailsScreen from './Screens/TagDetailsScreen';
+import CompletedJourneyScreen from './Screens/CompletedJourney';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +21,7 @@ function AppNavigator() {
             <Stack.Screen name="WriteNdef" component={WriteNdefScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Journey" component={Journey} options={{ headerShown: false }} />
             <Stack.Screen name="TagDetailsScreen" component={TagDetailsScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="CompletedJourneyScreen" component={CompletedJourneyScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }

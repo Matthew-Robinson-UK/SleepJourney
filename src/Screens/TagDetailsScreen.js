@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { Ndef } from 'react-native-nfc-manager';
 
 function TagDetailsScreen(props) {
-  const { route } = props;
+  console.log("TagDetailsScreen Initialized");
+  const { route, navigation } = props;
   const { tag } = route.params;
   let uri = null;
 
@@ -22,15 +23,24 @@ function TagDetailsScreen(props) {
     if (uri) {
       Linking.openURL(uri);
     }
-  }, [uri]);  // Dependency list ensures the effect runs only when `uri` changes
+  }, [uri]);
+
+  // This function encapsulates the button's onPress functionality.
+  const handleButtonPress = () => {
+    navigation.navigate('Journey', { msg });
+    console.log(uri);
+  };
+
+  useEffect(() => {
+    handleButtonPress(); // This will automatically execute the button's onPress action on component mount.
+  }, []); // Empty dependency array ensures it runs only on component mount.
+
+  console.log(tag);
 
   return (
     <View style={styles.wrapper}>
       {uri ? (
-        <TouchableOpacity
-          onPress={() => {
-            Linking.openURL(uri);
-          }}>
+        <TouchableOpacity onPress={handleButtonPress}>
           <Text style={styles.msg}>{msg}</Text>
         </TouchableOpacity>
       ) : (
