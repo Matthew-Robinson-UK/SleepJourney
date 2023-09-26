@@ -68,7 +68,7 @@ function AndroidPrompt(props, ref) {
         />
 
         <Animated.View style={[styles.prompt, promptAnimStyle]}>
-          <Text style={styles.hint}>{hintText || 'Scan Your Tag'}</Text>
+          <Text style={styles.hint}>{hintText || 'Scan to start'}</Text>
 
           <TouchableOpacity
             onPress={() => {
@@ -96,27 +96,29 @@ const styles = StyleSheet.create({
       bottom: 0,
       left: 20,
       width: Dimensions.get('window').width - 2 * 20,
-      backgroundColor: 'white',
-      borderColor: 'black',
+      backgroundColor: '#5E4B8B',
       borderWidth: 1,
-      borderRadius: 8,
+      borderRadius: 65,
+      borderColor: '#F5F5F5',
       paddingVertical: 60,
       paddingHorizontal: 20,
       alignItems: 'center',
       justifyContent: 'center',
     },
     hint: {
+      bottom: 10,
       fontSize: 24,
       fontWeight: 'bold',
       marginBottom: 20,
+      color: '#F5F5F5',
     },
     btn: {
       borderWidth: 1,
-      backgroundColor: '#FFA500',
-      borderColor: 'black',
-      borderRadius: 8,
+      backgroundColor: '#FFD180',
+      borderColor: '#F5F5F5',
+      borderRadius: 10,
       padding: 15,
-      color: 'black',
+      marginTop: 10,
     },
   });
   

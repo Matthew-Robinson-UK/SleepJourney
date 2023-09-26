@@ -1,10 +1,10 @@
-import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Linking} from 'react-native';
-import {Ndef} from 'react-native-nfc-manager';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { Ndef } from 'react-native-nfc-manager';
 
 function TagDetailsScreen(props) {
-  const {route} = props;
-  const {tag} = route.params;
+  const { route } = props;
+  const { tag } = route.params;
   let uri = null;
 
   if (tag.ndefMessage && tag.ndefMessage.length > 0) {
@@ -15,8 +15,14 @@ function TagDetailsScreen(props) {
       }
     }
   }
-  let msg = uri.split('://')[1];
 
+  let msg = uri && uri.split('://')[1];
+
+  useEffect(() => {
+    if (uri) {
+      Linking.openURL(uri);
+    }
+  }, [uri]);  // Dependency list ensures the effect runs only when `uri` changes
 
   return (
     <View style={styles.wrapper}>
@@ -39,6 +45,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#001F3F',
   },
   msg: {
     fontSize: 30,

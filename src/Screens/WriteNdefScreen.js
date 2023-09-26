@@ -37,7 +37,7 @@ function WriteNdefScreen(props) {
         androidPromptRef.current.setHintText('Success');
       } catch (ex) {
         androidPromptRef.current.setHintText('Error');
-        // bypass
+        console.log(ex);
       } finally {
         NfcManager.cancelTechnologyRequest();
         setTimeout(() => {
@@ -81,6 +81,7 @@ function WriteNdefScreen(props) {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
+    backgroundColor: '#001F3F',
   },
   pad: {
     padding: 20,
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bgLight: {
-    backgroundColor: 'lightblue',
+    backgroundColor: '#FFD180',
   },
 });
 

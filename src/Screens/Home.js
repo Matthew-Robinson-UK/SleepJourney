@@ -67,7 +67,7 @@ const Home = ({ navigation }) => {
       const tag = await NfcManager.getTag();
       navigation.navigate('TagDetailsScreen', {tag});
     } catch (ex) {
-      // bypass
+      androidPromptRef.current.setHintText('Error');
     } finally {
       NfcManager.cancelTechnologyRequest();
       if (Platform.OS === 'android') {
@@ -79,11 +79,21 @@ const Home = ({ navigation }) => {
   return (
     <View style={styles.wrapper}>
       <View style={styles.bottom}>
-        <Button mode="contained" style={[styles.btn]} onPress={() => {readNdef();}}>
-          TIME FOR BED
+        <Button                 
+                mode="contained"  // Changed from "outlined" to "contained"
+                theme={{ colors: { primary: '#5E4B8B' } }}
+                style={[styles.btn]} 
+                labelStyle={{ color: '#FFF' }}  
+                onPress={() => {readNdef();}}>
+                TIME FOR BED
         </Button>
-        <Button mode="contained" style={styles.btn} onPress={() => {navigation.navigate('WriteNdef')}}>
-          LINK
+        <Button                 
+                mode="contained"  // Changed from "outlined" to "contained"
+                theme={{ colors: { primary: '#5E4B8B' } }}
+                style={[styles.btn]} 
+                labelStyle={{ color: '#FFF' }}   
+                onPress={() => {navigation.navigate('WriteNdef')}}>
+                LINK
         </Button>
         <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {NfcManager.cancelTechnologyRequest();}} />
       </View>
@@ -96,17 +106,18 @@ wrapper: {
   flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
+  backgroundColor: '#001F3F',
 },
 bottom: {
   paddingHorizontal: 20,
   paddingVertical: 40,
 },
 btn: {
-  margin: 15,
-  padding: 15,
-  borderRadius: 8,
+  margin: 20,
   maxWidth: 'auto',
-  marginBottom: 15,
+  minWidth: 'auto',
+  borderColor: '#F5F5F5',
+  borderWidth: 1,
   elevation: 2,
 },
 });
