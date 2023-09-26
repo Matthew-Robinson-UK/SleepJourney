@@ -39,35 +39,35 @@ function getHabitStatus(habitName) {
 }
 
 function CompletedJourneyScreen() {
-
-    
     return (
+        <View style={styles.wrapper}>
             <View style={styles.progressTracker}>
                 {habitList.map((habit, index) => {
-                const status = getHabitStatus(habit.name);
-                const habitIconSource = images[habit.name.toLowerCase()];
-                let overlayIconSource;
+                    const status = getHabitStatus(habit.name);
+                    const habitIconSource = images[habit.name.toLowerCase()];
+                    let overlayIconSource;
 
-                if (status === 'completed') {
-                    overlayIconSource = require('../Assets/Images/tick.png');
-                }
+                    if (status === 'completed') {
+                        overlayIconSource = require('../Assets/Images/tick.png');
+                    }
 
-                return (
-                    <View key={index} style={styles.habitIconWrapper}>
-                        <Image 
-                            source={habitIconSource} 
-                            style={styles.habitIcon}
-                        />
-                        {overlayIconSource && (
+                    return (
+                        <View key={index} style={styles.habitIconWrapper}>
                             <Image 
-                                source={overlayIconSource} 
-                                style={styles.overlayIcon} 
+                                source={habitIconSource} 
+                                style={styles.habitIcon}
                             />
-                        )}
-                    </View>
-                );
+                            {overlayIconSource && (
+                                <Image 
+                                    source={overlayIconSource} 
+                                    style={styles.overlayIcon} 
+                                />
+                            )}
+                        </View>
+                    );
                 })}
             </View>
+        </View>
     );
 }
 
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#001F3F',
-    },
+      },
     progressTracker: {
         flexDirection: 'row',
         justifyContent: 'space-between',
