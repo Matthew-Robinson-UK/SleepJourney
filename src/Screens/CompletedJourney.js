@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, Animated, Text } from 'react-native';
-import { habitList } from '../HabitData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { habitList, habitMap } from '../HabitData';
 
 const images = {
     'toothbrush': require('../Assets/Images/toothbrush.png'),
@@ -44,6 +44,12 @@ function CompletedJourneyScreen() {
 
 
     React.useEffect(() => {
+        
+        habitList.forEach(habit => {
+            if (habitMap[habit.name]) {
+                habitMap[habit.name].TimesScanned += 1;
+            }
+        });
         const timer = setTimeout(() => {
             // Fade out progressTracker and fade in textBox simultaneously
             Animated.parallel([

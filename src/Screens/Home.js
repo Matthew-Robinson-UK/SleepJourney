@@ -52,7 +52,7 @@ const Home = ({ navigation }) => {
       NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
     };
   }, [start]);
-
+  
   React.useEffect(() => {
     function handleUrl(url) {
       const msg = url.split('://')[1];
@@ -143,9 +143,14 @@ btn: {
   margin: 20,
   maxWidth: 'auto',
   minWidth: 'auto',
-  borderColor: '#F5F5F5',
-  borderWidth: 1,
-  elevation: 2,
+  elevation: 20, // existing for Android
+
+  // Borders for depth
+  borderColor: '#fff',
+  borderWidth: 2,
+  borderRadius: 5,
+  
+  backgroundColor: "#5E4B8B", // You can replace this with a gradient for more depth
 },
 });
 

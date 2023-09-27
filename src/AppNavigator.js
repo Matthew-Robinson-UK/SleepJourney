@@ -35,7 +35,6 @@ function JourneysNavigator() {
         <JourneysStack.Navigator>
             <JourneysStack.Screen name="Setup" component={Setup} options={{ headerShown: false }} />
             <JourneysStack.Screen name="WriteNdef" component={WriteNdefScreen} options={{ headerShown: false }} />
-            {/* Add other screens relevant to this stack here */}
         </JourneysStack.Navigator>
     );
 }
@@ -60,10 +59,10 @@ function BottomTabNavigation() {
                 },
             }}>
                 <Tab.Screen 
-                    name="Journeys" 
+                    name="Journey"
                     component={JourneysNavigator}
                     options={({ focused }) => ({
-                        tabBarLabel: 'Journeys',
+                        tabBarLabel: 'Journey',
                         tabBarIcon: ({ color, size }) => (
                                 <FontAwesome5 name="route" color={color} size={size} />
                         ),
@@ -78,6 +77,7 @@ function BottomTabNavigation() {
                         headerTitleStyle: {
                             fontWeight: 'bold',
                         },
+                        headerTitle: 'Sleep Journey',
                         headerLeft: () => (
                             <MaterialCommunityIcons 
                                 name="weather-night" 
@@ -98,7 +98,6 @@ function BottomTabNavigation() {
                         ),
                         headerStyle: {
                             backgroundColor: '#001F3F',
-                            backgroundColor: '#001F3F',
                             borderBottomWidth: 0,
                             shadowOpacity: 0,
                             elevation: 0,    
@@ -107,6 +106,7 @@ function BottomTabNavigation() {
                         headerTitleStyle: {
                             fontWeight: 'bold',
                         },
+                        headerTitle: '',
                         headerLeft: () => (
                             <MaterialCommunityIcons 
                                 name="weather-night" 
@@ -126,7 +126,6 @@ function BottomTabNavigation() {
                                 <FontAwesome name="tasks" color={color} size={size} />
                         ),
                         headerStyle: {
-                            backgroundColor: '#001F3F',
                             backgroundColor: '#001F3F',
                             borderBottomWidth: 0,
                             shadowOpacity: 0,
