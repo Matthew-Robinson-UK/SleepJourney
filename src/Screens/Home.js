@@ -122,14 +122,6 @@ const Home = ({ navigation }) => {
                 onPress={() => {readNdef();}}>
                 TIME FOR BED
         </Button>
-        <Button                 
-                mode="contained"
-                theme={{ colors: { primary: '#5E4B8B' } }}
-                style={[styles.btn]} 
-                labelStyle={{ color: '#FFF' }}   
-                onPress={() => {navigation.navigate('WriteNdef')}}>
-                LINK
-        </Button>
         <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {NfcManager.cancelTechnologyRequest();}} />
       </View>
     </View> 

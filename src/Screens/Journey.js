@@ -4,7 +4,7 @@ import { habitList } from '../HabitData';
 import { getNextHabit } from '../Components/GetNextHabit';
 import { Button } from 'react-native-paper';
 import AndroidPrompt from '../AndroidPrompt';
-import NfcManager, { NfcEvents, NfcTech } from 'react-native-nfc-manager';
+import NfcManager, { NfcEvents, NfcTech, Ndef } from 'react-native-nfc-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const images = {
@@ -23,18 +23,23 @@ function Journey(props) {
 
     const [completedHabits, setCompletedHabits] = React.useState([]);
     const [currentHabit, setCurrentHabit] = React.useState(msg);
+    const [unlockedHabits, setUnlockedHabits] = React.useState([]);
+
 
     const androidPromptRef = React.useRef();
 
     function getHabitStatus(habitName) {
         if (completedHabits.includes(habitName)) {
             return 'completed';
+        } else if (unlockedHabits.includes(habitName)) {
+            return 'unlocked';
         } else if (habitName === currentHabit) {
             return 'active';
         } else {
             return 'default';
         }
     }
+    
 
     React.useEffect(() => {
         const fetchCompletedHabits = async () => {
@@ -62,6 +67,24 @@ function Journey(props) {
         
                 await NfcManager.requestTechnology(NfcTech.Ndef);
                 const tag = await NfcManager.getTag();
+    
+                if (tag.ndefMessage && tag.ndefMessage.length > 0) {
+                    const ndefRecord = tag.ndefMessage[0];
+                    if (ndefRecord.tnf === Ndef.TNF_WELL_KNOWN) {
+                      if (ndefRecord.type.every((b, i) => b === Ndef.RTD_BYTES_URI[i])) {
+                        uri = Ndef.uri.decodePayload(ndefRecord.payload);
+                      }
+                    }
+                  }
+                
+                  let scannedHabitName = uri && uri.split('://')[1];
+                console.log(scannedHabitName);
+        
+                if (scannedHabitName !== nextHabit.name) {
+                    androidPromptRef.current.setHintText(nextHabit.name + " is the next habit.");
+                    setTimeout(() => androidPromptRef.current.setVisible(false), 2000);
+                    return;
+                }
         
                 let updatedHabits = [...completedHabits, currentHabit];
         
@@ -79,12 +102,11 @@ function Journey(props) {
                 resolve();
             } catch (ex) {
                 androidPromptRef.current.setHintText('Error');
-                console.error(ex);
+                setTimeout(() => androidPromptRef.current.setVisible(false), 1000);
                 reject(ex);
             } finally {
                 NfcManager.cancelTechnologyRequest();
-                if (Platform.OS === 'android') {
-                    androidPromptRef.current.setVisible(false);
+                if (Platform.OS === 'android') { 
                 }
             }
         });
@@ -98,34 +120,43 @@ function Journey(props) {
             
             {/* Progress Tracker */}
             <View style={styles.progressTracker}>
-                {habitList.map((habit, index) => {
-                    const status = getHabitStatus(habit.name);
-                    let iconSource;
+            {habitList.map((habit, index) => {
+                const status = getHabitStatus(habit.name);
+                let iconSource;
+                let iconStyles = [styles.habitIcon];  // store styles in an array
 
-                    switch (status) {
-                        case 'completed':
-                        case 'active':
-                            iconSource = images[habit.name.toLowerCase()];
-                            break;
-                        default: // default state
-                            iconSource = require('../Assets/Images/lock.png');
-                    }
+                switch (status) {
+                    case 'completed':
+                    case 'active':
+                    case 'unlocked':
+                        iconSource = images[habit.name.toLowerCase()];
+                        if (status === 'active') {
+                            iconStyles.push(styles.activeHabitIcon);
+                        }
+                        break;
+                    default:
+                        iconSource = require('../Assets/Images/lock.png');
+                        iconStyles.push({borderWidth: 0}); // remove the border for the lock icon
+                }              
 
-                    return (
-                        <View key={index} style={styles.iconContainer}>
-                            <Image 
-                                source={iconSource} 
-                                style={[styles.habitIcon, status === 'active' ? styles.activeHabitIcon : {}]} 
-                            />
-                            {status === 'completed' && (
-                                <Image 
-                                    source={require('../Assets/Images/tick.png')} 
-                                    style={styles.tickIcon} 
-                                />
+                return (
+                    <View key={index} style={styles.iconContainer}>
+                        <Image 
+                            source={iconSource} 
+                            style={iconStyles} 
+                        />
+                        {(status === 'completed' || (status === 'active' && !unlockedHabits.includes(habit.name))) && (
+                                <View style={{...styles.tickIcon, ...styles.habitIcon}}>
+                                    <Image 
+                                        source={require('../Assets/Images/tick.png')} 
+                                        style={{width: '100%', height: '100%', resizeMode: 'contain'}} 
+                                    />
+                                </View>
                             )}
-                        </View>
-                    );
-                })}
+                    </View>
+                );
+            })}
+
             </View>
     
             <View style={styles.currentHabitWrapper}>
@@ -143,22 +174,23 @@ function Journey(props) {
                     style={[styles.btn]}
                     labelStyle={{ color: '#FFF' }}
                     onPress={() => {
-                        // Start NFC logic first
-                        readNdef().then(() => {   // Assuming readNdef returns a promise
-                            // Mark the current habit as completed
-                            setCompletedHabits(prevHabits => [...prevHabits, currentHabit]);
-                            // Set the current habit to the next habit
-                            if (nextHabit) {
-                                setCurrentHabit(nextHabit.name);
-                            }
-                        });
-                    }}
-                    >
-                            PRESS TO CONTINUE
-                    </Button>
+                        if (!completedHabits.includes(nextHabit.name)) {
+                            setUnlockedHabits(prevUnlocked => [...prevUnlocked, nextHabit.name]);
+                    
+                            readNdef().then(() => {   
+                                setCompletedHabits(prevHabits => [...prevHabits, currentHabit]);
+                                if (nextHabit) {
+                                    setCurrentHabit(nextHabit.name);
+                                }    
+                            });
+                        }
+                    }}                    
+                    >                    
+                PRESS TO CONTINUE
+                </Button>
+                <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {NfcManager.cancelTechnologyRequest();}} />
             </View>
         )}
-            <AndroidPrompt ref={androidPromptRef} />
         </View>
         );
             }
@@ -227,12 +259,15 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         resizeMode: 'contain',
-    },
+        borderWidth: 2,
+        borderColor: '#F5F5F5',
+        borderRadius: 30,
+    },    
 
     activeHabitIcon: {
         borderWidth: 2,
         borderColor: '#F5F5F5',
-        borderRadius: 30,  // Make this also circular
+        borderRadius: 30,  
     },
     iconContainer: {
         position: 'relative', 
@@ -247,7 +282,8 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         resizeMode: 'contain',
-        zIndex: 1, // ensure it's on top
+        zIndex: 1,
+
     },
     
   });

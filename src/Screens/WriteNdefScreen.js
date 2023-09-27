@@ -14,20 +14,8 @@ function WriteNdefScreen(props) {
     setMessage('Now tap NFC');
     androidPromptRef.current.setVisible(true);  // Show prompt
     androidPromptRef.current.setHintText('Now tap NFC');
-    let scheme = null;
-    if  (selectedLinkType === 'URI') {
-        scheme = 'com.sleepjourney://';
-    } else if (selectedLinkType === 'TEL') {
-      scheme = 'tel:';
-    } else if (selectedLinkType === 'SMS') {
-      scheme = 'sms:';
-    } else if (selectedLinkType === 'EMAIL') {
-      scheme = 'mailto:';
-    } else if (selectedLinkType === 'WEB') {
-        scheme = 'https://';
-    } else {
-      throw new Error('no such type');
-    }
+    let scheme = 'com.sleepjourney://';
+
     const uriRecord = Ndef.uriRecord(`${scheme}${value}`);
     const bytes = Ndef.encodeMessage([uriRecord]);
 
@@ -50,19 +38,8 @@ function WriteNdefScreen(props) {
     <View style={styles.wrapper}>
       <SafeAreaView />
       <View style={[styles.wrapper, styles.pad]}>
-        <View style={styles.linkType}>
-          {['URI','WEB', 'TEL', 'SMS', 'EMAIL',].map(linkType => (
-            <Chip
-              key={linkType}
-              style={styles.chip}
-              selected={linkType === selectedLinkType}
-              onPress={() => setSelectedLinkType(linkType)}>
-              {linkType}
-            </Chip>
-          ))}
-        </View>
         <TextInput
-          label="TARGET"
+          label="HABIT"
           value={value}
           onChangeText={setValue}
           autoCapitalize="none"

@@ -2,45 +2,33 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { Ndef } from 'react-native-nfc-manager';
 
-function TagDetailsScreen(props) {
-  console.log("TagDetailsScreen Initialized");
-  const { route, navigation } = props;
+function TagDetailsScreen({ route, navigation }) {
   const { tag } = route.params;
-  let uri = null;
 
-  if (tag.ndefMessage && tag.ndefMessage.length > 0) {
-    const ndefRecord = tag.ndefMessage[0];
-    if (ndefRecord.tnf === Ndef.TNF_WELL_KNOWN) {
-      if (ndefRecord.type.every((b, i) => b === Ndef.RTD_BYTES_URI[i])) {
-        uri = Ndef.uri.decodePayload(ndefRecord.payload);
+  const getUriFromTag = (tag) => {
+    if (tag.ndefMessage && tag.ndefMessage.length > 0) {
+      const ndefRecord = tag.ndefMessage[0];
+      if (ndefRecord.tnf === Ndef.TNF_WELL_KNOWN && ndefRecord.type.every((b, i) => b === Ndef.RTD_BYTES_URI[i])) {
+        return Ndef.uri.decodePayload(ndefRecord.payload);
       }
     }
+    return null;
   }
 
-  let msg = uri && uri.split('://')[1];
+  const uri = getUriFromTag(tag);
+  const msg = uri ? uri.split('://')[1] : null;
 
   useEffect(() => {
     if (uri) {
       Linking.openURL(uri);
+      navigation.navigate('Journey', { msg });
     }
-  }, [uri]);
-
-  // This function encapsulates the button's onPress functionality.
-  const handleButtonPress = () => {
-    navigation.navigate('Journey', { msg });
-    console.log(uri);
-  };
-
-  useEffect(() => {
-    handleButtonPress(); // This will automatically execute the button's onPress action on component mount.
-  }, []); // Empty dependency array ensures it runs only on component mount.
-
-  console.log(tag);
+  }, [uri, navigation, msg]);
 
   return (
     <View style={styles.wrapper}>
       {uri ? (
-        <TouchableOpacity onPress={handleButtonPress}>
+        <TouchableOpacity onPress={() => navigation.navigate('Journey', { msg })}>
           <Text style={styles.msg}>{msg}</Text>
         </TouchableOpacity>
       ) : (
