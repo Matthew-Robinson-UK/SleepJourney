@@ -9,7 +9,7 @@ import { StyleSheet, View } from'react-native';
 
 import Home from './Screens/Home';
 import WriteNdefScreen from './Screens/WriteNdefScreen';
-import Screen2 from './Screens/Screen2';
+import Screen2 from './Screens/History';
 import Journey from './Screens/Journey';
 import TagDetailsScreen from './Screens/TagDetailsScreen';
 import CompletedJourneyScreen from './Screens/CompletedJourney';
@@ -118,7 +118,7 @@ function BottomTabNavigation() {
                     }}
                 />
                 <Tab.Screen 
-                    name="Details" 
+                    name="History" 
                     component={Screen2} 
                     options={{
                         tabBarLabel: 'History',

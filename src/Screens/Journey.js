@@ -6,6 +6,7 @@ import { Button } from 'react-native-paper';
 import AndroidPrompt from '../AndroidPrompt';
 import NfcManager, { NfcEvents, NfcTech, Ndef } from 'react-native-nfc-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchStreak } from '../Components/DataHandler';
 
 const images = {
     'toothbrush': require('../Assets/Images/toothbrush.png'),
@@ -24,6 +25,9 @@ function Journey(props) {
     const [completedHabits, setCompletedHabits] = React.useState([]);
     const [currentHabit, setCurrentHabit] = React.useState(msg);
     const [unlockedHabits, setUnlockedHabits] = React.useState([]);
+    const [displayButton, setDisplayButton] = React.useState(true); 
+    const SCREEN_DATA_KEY = '@CompletedJourneyScreen:data';
+
 
 
     const androidPromptRef = React.useRef();
@@ -40,7 +44,6 @@ function Journey(props) {
         }
     }
     
-
     React.useEffect(() => {
         const fetchCompletedHabits = async () => {
             try {
@@ -111,90 +114,87 @@ function Journey(props) {
             }
         });
     }
-    
-    
-    
 
     return (
-        <View style={styles.wrapper}>
-            
-            {/* Progress Tracker */}
-            <View style={styles.progressTracker}>
-            {habitList.map((habit, index) => {
-                const status = getHabitStatus(habit.name);
-                let iconSource;
-                let iconStyles = [styles.habitIcon];  // store styles in an array
-
-                switch (status) {
-                    case 'completed':
-                    case 'active':
-                    case 'unlocked':
-                        iconSource = images[habit.name.toLowerCase()];
-                        if (status === 'active') {
-                            iconStyles.push(styles.activeHabitIcon);
-                        }
-                        break;
-                    default:
-                        iconSource = require('../Assets/Images/lock.png');
-                        iconStyles.push({borderWidth: 0}); // remove the border for the lock icon
-                }              
-
-                return (
-                    <View key={index} style={styles.iconContainer}>
-                        <Image 
-                            source={iconSource} 
-                            style={iconStyles} 
-                        />
-                        {(status === 'completed' || (status === 'active' && !unlockedHabits.includes(habit.name))) && (
-                                <View style={{...styles.tickIcon, ...styles.habitIcon}}>
-                                    <Image 
-                                        source={require('../Assets/Images/tick.png')} 
-                                        style={{width: '100%', height: '100%', resizeMode: 'contain'}} 
-                                    />
-                                </View>
-                            )}
-                    </View>
-                );
-            })}
-
-            </View>
+                <View style={styles.wrapper}>
     
-            <View style={styles.currentHabitWrapper}>
-                <View style={styles.imageWrapper}>
-                    <Image source={imageSource} style={styles.image} />
+                    {/* Progress Tracker */}
+                    <View style={styles.progressTracker}>
+                        {habitList.map((habit, index) => {
+                            const status = getHabitStatus(habit.name);
+                            let iconSource;
+                            let iconStyles = [styles.habitIcon];  // store styles in an array
+    
+                            switch (status) {
+                                case 'completed':
+                                case 'active':
+                                case 'unlocked':
+                                    iconSource = images[habit.name.toLowerCase()];
+                                    if (status === 'active') {
+                                        iconStyles.push(styles.activeHabitIcon);
+                                    }
+                                    break;
+                                default:
+                                    iconSource = require('../Assets/Images/lock.png');
+                                    iconStyles.push({ borderWidth: 0 }); // remove the border for the lock icon
+                            }
+    
+                            return (
+                                <View key={index} style={styles.iconContainer}>
+                                    <Image 
+                                        source={iconSource} 
+                                        style={iconStyles} 
+                                    />
+                                    {(status === 'completed' || (status === 'active' && !unlockedHabits.includes(habit.name))) && (
+                                        <View style={{ ...styles.tickIcon, ...styles.habitIcon }}>
+                                            <Image 
+                                                source={require('../Assets/Images/tick.png')} 
+                                                style={{ width: '100%', height: '100%', resizeMode: 'contain' }} 
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                            );
+                        })}
+                    </View>
+    
+                    <View style={styles.currentHabitWrapper}>
+                        <View style={styles.imageWrapper}>
+                            <Image source={imageSource} style={styles.image} />
+                        </View>
+                        <Text style={styles.msg}>{msg}</Text>
+                    </View>
+    
+                    {nextHabit && (
+                        <View style={styles.nextHabitButton}>
+                            <Button
+                                mode="contained"
+                                theme={{ colors: { primary: '#5E4B8B' } }}
+                                style={[styles.btn]}
+                                labelStyle={{ color: '#FFF' }}
+                                onPress={() => {
+                                    if (!completedHabits.includes(nextHabit.name)) {
+                                        setUnlockedHabits(prevUnlocked => [...prevUnlocked, nextHabit.name]);
+    
+                                        readNdef().then(() => {   
+                                            setCompletedHabits(prevHabits => [...prevHabits, currentHabit]);
+                                            if (nextHabit) {
+                                                setCurrentHabit(nextHabit.name);
+                                            }    
+                                        });
+                                    }
+                                }}
+                            >
+                                PRESS TO CONTINUE
+                            </Button>
+                            <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {NfcManager.cancelTechnologyRequest();}} />
+                        </View>
+                    )}
+    
                 </View>
-                <Text style={styles.msg}>{msg}</Text>
-            </View>
-            
-            {nextHabit && (
-            <View style={styles.nextHabitButton}>
-                <Button
-                    mode="contained"
-                    theme={{ colors: { primary: '#5E4B8B' } }}
-                    style={[styles.btn]}
-                    labelStyle={{ color: '#FFF' }}
-                    onPress={() => {
-                        if (!completedHabits.includes(nextHabit.name)) {
-                            setUnlockedHabits(prevUnlocked => [...prevUnlocked, nextHabit.name]);
-                    
-                            readNdef().then(() => {   
-                                setCompletedHabits(prevHabits => [...prevHabits, currentHabit]);
-                                if (nextHabit) {
-                                    setCurrentHabit(nextHabit.name);
-                                }    
-                            });
-                        }
-                    }}                    
-                    >                    
-                PRESS TO CONTINUE
-                </Button>
-                <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {NfcManager.cancelTechnologyRequest();}} />
-            </View>
-        )}
-        </View>
-        );
-            }
-
+            );
+                            };
+    
 const styles = StyleSheet.create({
     wrapper: {
         flex: 1,

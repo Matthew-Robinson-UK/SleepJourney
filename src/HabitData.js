@@ -3,19 +3,22 @@
       name: 'Toothbrush',
       no: 1,
       TimesScanned: 1,
-      AvgScanTime: 1,
+      timeOfDay: ['07:30'],
+      avgTimeOfDay: '07:30',
     },
     {
       name: 'Water',
       no: 2,
       TimesScanned: 1,
-      AvgScanTime: 1,
+      timeOfDay: ['07:30'],
+      avgTimeOfDay: '07:30', 
     },
     {
       name: 'Charger',
       no: 3,
       TimesScanned: 1,
-      AvgScanTime: 1,
+      timeOfDay: ['07:30'],
+      avgTimeOfDay: '07:30', 
     },
   ];
   

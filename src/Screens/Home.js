@@ -4,13 +4,19 @@ import {Button} from 'react-native-paper';
 import NfcManager, {NfcEvents, NfcTech} from 'react-native-nfc-manager';
 import AndroidPrompt from '.././AndroidPrompt'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { fetchStreak } from '../Components/DataHandler';
 import { habitList } from '../HabitData';
 
 const Home = ({ navigation }) => {
   const [start, setStart] = React.useState(null);
   const [duration, setDuration] = React.useState(0);
   const androidPromptRef = React.useRef(); // call React.useRef() to obtain a ref object
+
+  const [streak, setStreak] = React.useState(0);
+  const [displayButton, setDisplayButton] = React.useState(true); 
+
+
+  const SCREEN_DATA_KEY = '@CompletedJourneyScreen:data';
 
   function resetCompletedHabits() {
     try {
@@ -24,8 +30,21 @@ const Home = ({ navigation }) => {
   React.useEffect(() => {
     const unsubscribe = navigation.addListener('focus', resetCompletedHabits);
     
-    return unsubscribe; // Clean up the listener on unmount
+     return () => unsubscribe();
   }, [navigation]);
+
+  React.useEffect(() => {
+    async function getStreakData() {
+      const { fetchedStreak, displayButton } = await fetchStreak(SCREEN_DATA_KEY);
+      if (fetchedStreak !== undefined) {
+        setStreak(fetchedStreak);
+      }
+      setDisplayButton(displayButton);
+    }
+    getStreakData();
+  }, []);
+
+  
 
   React.useEffect(() => {
     let count = 5;
@@ -74,7 +93,7 @@ const Home = ({ navigation }) => {
     Linking.addEventListener('url', handleEventUrl);
   
     return () => {
-      Linking.removeEventListener('url', handleEventUrl);  // Remove specific event listener
+      Linking.removeAllListeners('url');
     };
   }, [navigation]);
   
@@ -111,22 +130,30 @@ const Home = ({ navigation }) => {
     }
   }
 
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.bottom}>
+        
         <Button                 
-                mode="contained" 
-                theme={{ colors: { primary: '#5E4B8B' } }}
-                style={[styles.btn]} 
-                labelStyle={{ color: '#FFF' }}  
-                onPress={() => {readNdef();}}>
-                TIME FOR BED
+            mode="contained" 
+            theme={{ colors: { primary: '#5E4B8B' } }}
+            style={[styles.btn]} 
+            labelStyle={{ color: '#FFF' }}  
+            onPress={readNdef}
+        >
+            TIME FOR BED
         </Button>
+
+        <Text style={{ fontSize: 24, color: 'white' }}>
+              Current Streak: {streak} {streak === 1 ? 'day' : 'days'}
+        </Text>
+        
         <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {NfcManager.cancelTechnologyRequest();}} />
       </View>
     </View> 
-  );
-};
+);
+  };
 
 const styles = StyleSheet.create({
 wrapper: {

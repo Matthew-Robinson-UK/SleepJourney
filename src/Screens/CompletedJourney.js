@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Image, StyleSheet, Animated, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { habitList, habitMap } from '../HabitData';
+import { fetchScreenData, updateScreenData } from '../Components/DataHandler';
 
 const images = {
     'toothbrush': require('../Assets/Images/toothbrush.png'),
@@ -9,6 +10,7 @@ const images = {
     'charger': require('../Assets/Images/charger.png'),
 };
 
+const SCREEN_DATA_KEY = '@CompletedJourneyScreen:data';
 
 function getHabitStatus(habitName) {
     const [completedHabits, setCompletedHabits] = React.useState([]);
@@ -28,13 +30,14 @@ function getHabitStatus(habitName) {
 
         fetchCompletedHabits();
     }, []);
-        if (completedHabits.includes(habitName)) {
-            return 'completed';
-        } else if (habitName === currentHabit) {
-            return 'active';
-        } else {
-            return 'default';
-        }
+
+    if (completedHabits.includes(habitName)) {
+        return 'completed';
+    } else if (habitName === currentHabit) {
+        return 'active';
+    } else {
+        return 'default';
+    }
 }
 
 function CompletedJourneyScreen() {
@@ -42,34 +45,34 @@ function CompletedJourneyScreen() {
     const progressTrackerOpacity = React.useRef(new Animated.Value(1)).current;
     const textBoxOpacity = React.useRef(new Animated.Value(0)).current;
 
-
     React.useEffect(() => {
-        
+        updateScreenData();
+      
         habitList.forEach(habit => {
             if (habitMap[habit.name]) {
                 habitMap[habit.name].TimesScanned += 1;
             }
         });
+
         const timer = setTimeout(() => {
             // Fade out progressTracker and fade in textBox simultaneously
             Animated.parallel([
                 Animated.timing(progressTrackerOpacity, {
                     toValue: 0,
                     duration: 1000,
-                    useNativeDriver: true,  // This is important for performance
+                    useNativeDriver: true,
                 }),
                 Animated.timing(textBoxOpacity, {
                     toValue: 1,
                     duration: 1000,
-                    useNativeDriver: true,  // This is important for performance
+                    useNativeDriver: true,
                 }),
             ]).start();
-        }, 3000);  // 3 seconds delay
-    
-        return () => clearTimeout(timer);  // Clear timer on component unmount
+        }, 3000);
+
+        return () => clearTimeout(timer);
     }, []);
 
-    
     return (
         <View style={styles.wrapper}>
             <Animated.View style={[styles.progressTracker, { opacity: progressTrackerOpacity }]}>
@@ -101,7 +104,6 @@ function CompletedJourneyScreen() {
             <Animated.View style={{ opacity: textBoxOpacity }}>
                 <Text style={{ fontSize: 24, color: 'white' }}>Good night.</Text>
             </Animated.View>
-
         </View>
     );
 }
