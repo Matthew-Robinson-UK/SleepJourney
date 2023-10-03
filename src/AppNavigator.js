@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StyleSheet, View } from'react-native';
 
 import Home from './Screens/Home';
@@ -14,16 +15,18 @@ import Journey from './Screens/Journey';
 import TagDetailsScreen from './Screens/TagDetailsScreen';
 import CompletedJourneyScreen from './Screens/CompletedJourney';
 import Setup from './Screens/Setup';
+import Settings from './Screens/Settings';
 
 const Stack = createStackNavigator();
 
 function AppNavigator() {
     return (
         <Stack.Navigator>
-            <Stack.Screen name="HomeStack" component={Home} options={{ headerShown: false }} />
+            <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
             <Stack.Screen name="Journey" component={Journey} options={{ headerShown: false }} />
             <Stack.Screen name="TagDetailsScreen" component={TagDetailsScreen} options={{ headerShown: false }} />
             <Stack.Screen name="CompletedJourneyScreen" component={CompletedJourneyScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
         </Stack.Navigator>
     );
 }
@@ -91,7 +94,7 @@ function BottomTabNavigation() {
                 <Tab.Screen 
                     name="Sleep Journey" 
                     component={AppNavigator} 
-                    options={{
+                    options={({ navigation }) => ({
                         tabBarLabel: 'Home',
                         tabBarIcon: ({ color, size }) => (
                                 <FontAwesome name="moon-o" color={color} size={size} />
@@ -115,7 +118,17 @@ function BottomTabNavigation() {
                                 style={{ marginLeft: 10 }}
                             />
                         ),
-                    }}
+                        headerRight: () => (
+                            <View style={{ marginRight: 10 }}>
+                                <Ionicons
+                                    name="settings-outline" 
+                                    size={24} 
+                                    color="#fff" 
+                                    onPress={() => navigation.navigate('Settings')} 
+                                />
+                            </View>
+                        ),
+                    })}
                 />
                 <Tab.Screen 
                     name="History" 
@@ -148,6 +161,6 @@ function BottomTabNavigation() {
             </Tab.Navigator>
         </NavigationContainer>
     );
-}
+                }
 
 export default BottomTabNavigation;

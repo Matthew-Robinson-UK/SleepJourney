@@ -6,25 +6,41 @@ import { habitList } from '../HabitData';
 import HabitImage from '../Components/HabitImage';
 
 const Setup = ({ navigation }) => {
-const androidPromptRef = React.useRef();
+  const androidPromptRef = React.useRef();
 
-return (
+  return (
     <View style={{ flex: 1, backgroundColor: '#001F3F' }}>
-      <ScrollView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 15, }}>
-        {habitList.map(p => {
-          return (
+      <ScrollView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 15 }}>
+        {habitList.map((p, index) => (
+          <View key={p.name} style={styles.listItemContainer}>
             <List.Item
-              key={p.name}
               title={p.name}
               titleStyle={{ color: '#FFF' }}
               left={() => <HabitImage name={p.name.toLowerCase()} />}
-              onPress={() => {
-                navigation.navigate('Detail', { habit: p, allowCreate: true });
-              }}
             />
-          );
-        })}
+
+            <View style={styles.buttonContainer}>
+              {/* Display Edit button for items that are not last in the list */}
+              {index !== habitList.length - 1 && (
+                <Button mode="text" onPress={() => navigation.navigate('Detail', { habit: p, allowCreate: true })}>
+                  Edit
+                </Button>
+              )}
+
+              {/* Display Delete button for items that are neither the first nor the last */}
+              {index !== 0 && index !== habitList.length - 1 && (
+                <Button mode="text" onPress={() => {
+                  // Handle delete action here
+                  console.log(`Delete ${p.name}`);
+                }}>
+                  Delete
+                </Button>
+              )}
+            </View>
+          </View>
+        ))}
       </ScrollView>
+
 
       <View style={styles.container}>
         <Button
@@ -67,6 +83,19 @@ wrapper: {
     borderWidth: 1,
     elevation: 2,
   },
+  listItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,  // Optional, adds spacing between list items.
+  },
+  
+  buttonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end', // This ensures buttons are aligned to the right.
+  },
+  
   });
 
 export default Setup;

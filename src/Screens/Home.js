@@ -133,34 +133,43 @@ const Home = ({ navigation }) => {
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.bottom}>
-        
-        <Button                 
-            mode="contained" 
-            theme={{ colors: { primary: '#5E4B8B' } }}
-            style={[styles.btn]} 
-            labelStyle={{ color: '#FFF' }}  
-            onPress={readNdef}
-        >
-            TIME FOR BED
-        </Button>
-
+      
+      <View style={styles.streakWrapper}>
         <Text style={{ fontSize: 24, color: 'white' }}>
-              Current Streak: {streak} {streak === 1 ? 'day' : 'days'}
+          Streak: {streak} {streak === 1 ? 'day' : 'days'}
         </Text>
         
+      </View>
+      <Button                 
+          mode="contained" 
+          theme={{ colors: { primary: '#5E4B8B' } }}
+          style={[styles.btn]} 
+          labelStyle={{ color: '#FFF' }}  
+          onPress={readNdef}
+        >
+          TIME FOR BED
+        </Button>
+
+      <View style={styles.bottom}>
         <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {NfcManager.cancelTechnologyRequest();}} />
       </View>
     </View> 
-);
+  );
+  
   };
 
 const styles = StyleSheet.create({
 wrapper: {
   flex: 1,
+  flexDirection: 'column',
+  justifyContent: 'space-between',
   alignItems: 'center',
-  justifyContent: 'center',
   backgroundColor: '#001F3F',
+},
+streakWrapper: {
+  alignItems: 'flex-end',
+  marginTop: 50,
+  marginStart: 180,
 },
 bottom: {
   paddingHorizontal: 20,
@@ -168,8 +177,7 @@ bottom: {
 },
 btn: {
   margin: 20,
-  maxWidth: 'auto',
-  minWidth: 'auto',
+  maxWidth: 250,
   elevation: 20, // existing for Android
 
   // Borders for depth

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "660810961698",
+    "project_id": "sleep-journey-fdb30",
+    "storage_bucket": "sleep-journey-fdb30.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:660810961698:android:8a3c38a937b20db3358b7b",
+        "android_client_info": {
+          "package_name": "com.sleepjourney"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyMt7MIaM0L3JOXkc6wpl__kyqgSJlALk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

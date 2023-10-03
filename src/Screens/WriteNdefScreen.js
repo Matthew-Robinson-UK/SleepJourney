@@ -23,6 +23,7 @@ function WriteNdefScreen(props) {
         await NfcManager.requestTechnology(NfcTech.Ndef);
         await NfcManager.ndefHandler.writeNdefMessage(bytes);
         androidPromptRef.current.setHintText('Success');
+        addHabit(value);
       } catch (ex) {
         androidPromptRef.current.setHintText('Error');
         console.log(ex);

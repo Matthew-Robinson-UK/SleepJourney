@@ -25,8 +25,7 @@ function Journey(props) {
     const [completedHabits, setCompletedHabits] = React.useState([]);
     const [currentHabit, setCurrentHabit] = React.useState(msg);
     const [unlockedHabits, setUnlockedHabits] = React.useState([]);
-    const [displayButton, setDisplayButton] = React.useState(true); 
-    const SCREEN_DATA_KEY = '@CompletedJourneyScreen:data';
+    const [isRequestingNFC, setIsRequestingNFC] = React.useState(false);
 
 
 
@@ -61,13 +60,18 @@ function Journey(props) {
     
 
     async function readNdef() {
+        setIsRequestingNFC(true);
+        console.log("Starting readNdef function...");
+        if (isRequestingNFC) {
+            console.warn("NFC request already in progress");
+        }
+        console.log("About to request NFC...");
         return new Promise(async (resolve, reject) => {
             try {
                 if (Platform.OS === 'android') {
                     androidPromptRef.current.setHintText(`Now scan the ${nextHabit.name} tag`);
                     androidPromptRef.current.setVisible(true);
                 }
-        
                 await NfcManager.requestTechnology(NfcTech.Ndef);
                 const tag = await NfcManager.getTag();
     
@@ -104,13 +108,13 @@ function Journey(props) {
     
                 resolve();
             } catch (ex) {
+                setIsRequestingNFC(false);
                 androidPromptRef.current.setHintText('Error');
                 setTimeout(() => androidPromptRef.current.setVisible(false), 1000);
                 reject(ex);
             } finally {
+                setIsRequestingNFC(false);
                 NfcManager.cancelTechnologyRequest();
-                if (Platform.OS === 'android') { 
-                }
             }
         });
     }
@@ -176,18 +180,24 @@ function Journey(props) {
                                     if (!completedHabits.includes(nextHabit.name)) {
                                         setUnlockedHabits(prevUnlocked => [...prevUnlocked, nextHabit.name]);
     
-                                        readNdef().then(() => {   
+                                        readNdef()
+                                        .then(() => {   
                                             setCompletedHabits(prevHabits => [...prevHabits, currentHabit]);
                                             if (nextHabit) {
                                                 setCurrentHabit(nextHabit.name);
                                             }    
+                                        })
+                                        .catch(error => {
+                                            console.error("Error reading NFC:", error);
                                         });
                                     }
                                 }}
                             >
                                 PRESS TO CONTINUE
                             </Button>
-                            <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {NfcManager.cancelTechnologyRequest();}} />
+                            <AndroidPrompt ref={androidPromptRef} onCancelPress= {() => {
+                                setIsRequestingNFC(false);
+                                NfcManager.cancelTechnologyRequest();}} />
                         </View>
                     )}
     
