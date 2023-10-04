@@ -5,7 +5,7 @@ import { habitList, habitMap } from '../HabitData';
 import { fetchScreenData, updateScreenData } from '../Components/DataHandler';
 
 const images = {
-    'toothbrush': require('../Assets/Images/toothbrush.png'),
+    'brush teeth': require('../Assets/Images/brush teeth.png'),
     'water': require('../Assets/Images/water.png'),
     'charger': require('../Assets/Images/charger.png'),
 };

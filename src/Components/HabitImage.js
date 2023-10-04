@@ -13,10 +13,10 @@ function Unknown({style = {}, ...props}) {
   );
 }
 
-function Toothbrush({style = {}, ...props}) {
+function brushteeth({style = {}, ...props}) {
   return (
     <FastImage
-      source={require('../Assets/Images/toothbrush.png')}
+      source={require('../Assets/Images/brush teeth.png')}
       style={[styles.base, style]}
       resizeMode="contain"
       {...props}
@@ -46,8 +46,8 @@ function Water({style = {}, ...props}) {
     }
 
   function HabitImage({name, ...props}) {
-    if (name === 'toothbrush') {
-      return <Toothbrush {...props} />;
+    if (name === 'brushteeth') {
+      return <brushteeth {...props} />;
     } else if (name === 'water') {
       return <Water {...props} />;
     } else if (name === 'charger') {

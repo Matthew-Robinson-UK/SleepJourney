@@ -1,46 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Button, List } from'react-native-paper';
 import AndroidPrompt from '../AndroidPrompt';
-import { habitList } from '../HabitData';
 import HabitImage from '../Components/HabitImage';
+import { fetchHabits } from '../Components/FetchHabits';
 
 const Setup = ({ navigation }) => {
+
+  const [habits, setHabits] = useState([]); // New state variable
   const androidPromptRef = React.useRef();
+  useFocusEffect(
+    React.useCallback(() => {
+        const fetchData = async () => {
+            try {
+                const fetchedHabits = await fetchHabits();
+                setHabits(fetchedHabits);
+            } catch (error) {
+                console.error("Error:", error.message);
+                // Handle error in UI/UX, perhaps set some error state here
+            }
+        };
+        fetchData();
+    }, [])
+);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#001F3F' }}>
       <ScrollView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 15 }}>
-        {habitList.map((p, index) => (
+        {habits.map((p, index) => (
           <View key={p.name} style={styles.listItemContainer}>
             <List.Item
               title={p.name}
               titleStyle={{ color: '#FFF' }}
               left={() => <HabitImage name={p.name.toLowerCase()} />}
             />
-
             <View style={styles.buttonContainer}>
-              {/* Display Edit button for items that are not last in the list */}
-              {index !== habitList.length - 1 && (
-                <Button mode="text" onPress={() => navigation.navigate('Detail', { habit: p, allowCreate: true })}>
+              {index !== habits.length - 1 && (
+                  <Button 
+                  mode="text" 
+                  onPress={() => {
+                    console.log('Editing Habit:', p.id); // Log habit data here
+                    navigation.navigate('WriteNdef', { habit: p, allowCreate: true, habitId: p.id })
+                  }}
+                >
                   Edit
-                </Button>
-              )}
-
-              {/* Display Delete button for items that are neither the first nor the last */}
-              {index !== 0 && index !== habitList.length - 1 && (
-                <Button mode="text" onPress={() => {
-                  // Handle delete action here
-                  console.log(`Delete ${p.name}`);
-                }}>
-                  Delete
                 </Button>
               )}
             </View>
           </View>
         ))}
       </ScrollView>
-
 
       <View style={styles.container}>
         <Button
@@ -50,7 +60,7 @@ const Setup = ({ navigation }) => {
           labelStyle={{ color: '#FFF' }}
           onPress={() => { navigation.navigate('WriteNdef'); }}
         >
-          LINK
+          Add Habit
         </Button>
         <AndroidPrompt ref={androidPromptRef} onCancelPress={() => { /* NfcManager.cancelTechnologyRequest(); */ }} />
       </View>
@@ -87,13 +97,13 @@ wrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,  // Optional, adds spacing between list items.
+    marginBottom: 10,
   },
   
   buttonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end', // This ensures buttons are aligned to the right.
+    justifyContent: 'flex-end',
   },
   
   });

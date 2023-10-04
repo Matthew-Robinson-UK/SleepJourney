@@ -1,9 +1,12 @@
 // SettingsScreen.js
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {AuthContext} from '../Navigation/AuthProvider';
 
 const SettingsScreen = () => {
+
+  const {logout} = React.useContext(AuthContext);
   return (
     <View style={styles.wrapper}>
       <Text>1. Setup your Sleep Journey</Text>
@@ -11,6 +14,9 @@ const SettingsScreen = () => {
       <Text>2. Complete your Sleep Journey</Text>
 
       <Text>3. View your Sleep Journey History</Text>
+      <TouchableOpacity onPress={() => logout()}>
+                <Text>Logout</Text>
+              </TouchableOpacity>
     </View>
   );
 }

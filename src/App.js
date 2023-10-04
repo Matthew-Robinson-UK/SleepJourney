@@ -1,10 +1,8 @@
-import * as React from 'react';
-import AppNavigator from './AppNavigator';
+import React from 'react';
+import Providers from './Navigation';
 
-function App() {
-  return (
-        <AppNavigator />
-  );
-};
+const App = () => {
+  return <Providers />;
+}
 
 export default App;

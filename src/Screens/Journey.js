@@ -4,12 +4,12 @@ import { habitList } from '../HabitData';
 import { getNextHabit } from '../Components/GetNextHabit';
 import { Button } from 'react-native-paper';
 import AndroidPrompt from '../AndroidPrompt';
-import NfcManager, { NfcEvents, NfcTech, Ndef } from 'react-native-nfc-manager';
+import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fetchStreak } from '../Components/DataHandler';
+import { fetchHabits } from '../Components/FetchHabits';
 
 const images = {
-    'toothbrush': require('../Assets/Images/toothbrush.png'),
+    'brush teeth': require('../Assets/Images/brush teeth.png'),
     'water': require('../Assets/Images/water.png'),
     'charger': require('../Assets/Images/charger.png'),
 };
@@ -20,15 +20,14 @@ function Journey(props) {
 
     const lowerCaseMsg = msg.toLowerCase();
     const imageSource = images[lowerCaseMsg] || require('../Assets/Images/default.png');
-    const nextHabit = getNextHabit(msg, habitList);
+    const [fetchedHabits, setFetchedHabits] = React.useState([]);
+    const nextHabit = fetchedHabits.length ? getNextHabit(msg, fetchedHabits) : null;
+    console.log("next habit: ", JSON.stringify(nextHabit));
 
     const [completedHabits, setCompletedHabits] = React.useState([]);
     const [currentHabit, setCurrentHabit] = React.useState(msg);
     const [unlockedHabits, setUnlockedHabits] = React.useState([]);
     const [isRequestingNFC, setIsRequestingNFC] = React.useState(false);
-
-
-
     const androidPromptRef = React.useRef();
 
     function getHabitStatus(habitName) {
@@ -42,7 +41,20 @@ function Journey(props) {
             return 'default';
         }
     }
-    
+
+    React.useEffect(() => {
+        const fetchAndSetHabits = async () => {
+            try {
+                const habits = await fetchHabits();
+                setFetchedHabits(habits);
+            } catch (error) {
+                console.error("Error fetching habits from Firestore: ", error);
+            }
+        };
+
+        fetchAndSetHabits();
+    }, []);
+
     React.useEffect(() => {
         const fetchCompletedHabits = async () => {
             try {
@@ -68,6 +80,7 @@ function Journey(props) {
         console.log("About to request NFC...");
         return new Promise(async (resolve, reject) => {
             try {
+                console.log(nextHabit)
                 if (Platform.OS === 'android') {
                     androidPromptRef.current.setHintText(`Now scan the ${nextHabit.name} tag`);
                     androidPromptRef.current.setVisible(true);
@@ -95,7 +108,7 @@ function Journey(props) {
         
                 let updatedHabits = [...completedHabits, currentHabit];
         
-                if (nextHabit.name === habitList[habitList.length - 1].name) {
+                if (nextHabit.name === fetchedHabits[fetchedHabits.length - 1].name) {
                     updatedHabits.push(nextHabit.name); 
                     await AsyncStorage.setItem('completedHabits', JSON.stringify(updatedHabits));
                     setCompletedHabits(updatedHabits);
@@ -124,10 +137,10 @@ function Journey(props) {
     
                     {/* Progress Tracker */}
                     <View style={styles.progressTracker}>
-                        {habitList.map((habit, index) => {
+                        {fetchedHabits.map((habit, index) => {
                             const status = getHabitStatus(habit.name);
                             let iconSource;
-                            let iconStyles = [styles.habitIcon];  // store styles in an array
+                            let iconStyles = [styles.habitIcon];
     
                             switch (status) {
                                 case 'completed':

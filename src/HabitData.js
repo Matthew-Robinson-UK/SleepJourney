@@ -1,6 +1,6 @@
     const habitList = [
     {
-      name: 'Toothbrush',
+      name: 'brush teeth',
       no: 1,
       TimesScanned: 1,
       timeOfDay: ['07:30'],

@@ -12,7 +12,28 @@
           "package_name": "com.sleepjourney"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "660810961698-3lhfa30km94dtd80dvmmle65lc0e141j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sleepjourney",
+            "certificate_hash": "43dfd25a0e6e5ce61f6cf140e518218ca9d99e90"
+          }
+        },
+        {
+          "client_id": "660810961698-4e7520m11hghndi8ik4iqc9oi19mo4lv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sleepjourney",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "660810961698-qf35idp14m5i16icjqqtml1vlidnkeq0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCyMt7MIaM0L3JOXkc6wpl__kyqgSJlALk"
@@ -20,7 +41,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "660810961698-qf35idp14m5i16icjqqtml1vlidnkeq0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

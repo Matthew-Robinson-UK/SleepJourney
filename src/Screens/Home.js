@@ -1,19 +1,18 @@
 import React from 'react';
-import {TouchableOpacity, View, StyleSheet, Linking, Text, Platform} from 'react-native';
+import { View, StyleSheet, Linking, Text, Platform} from 'react-native';
 import {Button} from 'react-native-paper';
 import NfcManager, {NfcEvents, NfcTech} from 'react-native-nfc-manager';
 import AndroidPrompt from '.././AndroidPrompt'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchStreak } from '../Components/DataHandler';
-import { habitList } from '../HabitData';
+import { fetchHabits } from '../Components/FetchHabits';
 
 const Home = ({ navigation }) => {
-  const [start, setStart] = React.useState(null);
-  const [duration, setDuration] = React.useState(0);
-  const androidPromptRef = React.useRef(); // call React.useRef() to obtain a ref object
+  const androidPromptRef = React.useRef();
 
   const [streak, setStreak] = React.useState(0);
-  const [displayButton, setDisplayButton] = React.useState(true); 
+  const [habits, setHabits] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
 
   const SCREEN_DATA_KEY = '@CompletedJourneyScreen:data';
@@ -21,7 +20,6 @@ const Home = ({ navigation }) => {
   function resetCompletedHabits() {
     try {
       AsyncStorage.removeItem('completedHabits');
-      // If you maintain the completedHabits state in the Home component or want to do other updates, do so here.
     } catch (error) {
       console.error("Error resetting completed habits:", error);
     }
@@ -35,47 +33,33 @@ const Home = ({ navigation }) => {
 
   React.useEffect(() => {
     async function getStreakData() {
-      const { fetchedStreak, displayButton } = await fetchStreak(SCREEN_DATA_KEY);
+      const { fetchedStreak } = await fetchStreak(SCREEN_DATA_KEY);
       if (fetchedStreak !== undefined) {
         setStreak(fetchedStreak);
       }
-      setDisplayButton(displayButton);
     }
     getStreakData();
   }, []);
 
-  
-
   React.useEffect(() => {
-    let count = 5;
-    NfcManager.setEventListener(NfcEvents.DiscoverTag, (tag) => {
-      count--;
-
-      if (Platform.OS === 'android') { // set hint text for AndroidPrompt
-        androidPromptRef.current.setHintText(`${count}...`);
-      } else {
-        NfcManager.setAlertMessageIOS(`${count}...`);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const fetchedHabits = await fetchHabits();
+        setHabits(fetchedHabits);
+      } catch (error) {
+        console.error("Error:", error.message);
+      } finally {
+        setIsLoading(false);
       }
-
-      if (count <= 0) {
-        NfcManager.unregisterTagEvent().catch(() => 0);
-        setDuration(new Date().getTime() - start.getTime());
-
-        if (Platform.OS === 'android') { // hide AndroidPrompt
-          androidPromptRef.current.setVisible(false);
-        }
-      }
-    });
-
-    return () => {
-      NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
     };
-  }, [start]);
+    fetchData();
+  }, []);
   
   React.useEffect(() => {
     function handleUrl(url) {
       const msg = url.split('://')[1];
-      if (url && msg === habitList[0].name) {
+      if (url && msg === habits[0]?.name) {
         navigation.navigate('Journey', {
           msg: msg,
         });
@@ -95,12 +79,12 @@ const Home = ({ navigation }) => {
     return () => {
       Linking.removeAllListeners('url');
     };
-  }, [navigation]);
+  }, [navigation, habits]);
   
 
   async function readNdef() {
     try {  
-      androidPromptRef.current.setHintText('Scan ' + habitList[0].name + ' to start!');
+      androidPromptRef.current.setHintText('Scan ' + habits[0]?.name + ' to start!');
       if (Platform.OS === 'android') {
         androidPromptRef.current.setVisible(true);
       }
@@ -112,9 +96,9 @@ const Home = ({ navigation }) => {
       const payloadString = String.fromCharCode(...tag.ndefMessage[0].payload).trim();
       const habitFromPayload = payloadString.split('://')[1];
 
-      if(habitFromPayload !== habitList[0].name) {
+      if(habitFromPayload !== habits[0].name) {
         if (Platform.OS === 'android') {
-          androidPromptRef.current.setHintText('Please scan ' + habitList[0].name + '!');
+          androidPromptRef.current.setHintText('Please scan ' + habits[0]?.name + '!');
         }
         await new Promise(resolve => setTimeout(resolve, 3000));
         return;
@@ -129,7 +113,14 @@ const Home = ({ navigation }) => {
       }
     }
   }
-
+  if(isLoading) {
+    return (
+      <View style={styles.wrapper}>
+        {/* Some loading UI */}
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.wrapper}>
@@ -178,14 +169,12 @@ bottom: {
 btn: {
   margin: 20,
   maxWidth: 250,
-  elevation: 20, // existing for Android
-
-  // Borders for depth
+  elevation: 20,
   borderColor: '#fff',
   borderWidth: 2,
   borderRadius: 5,
   
-  backgroundColor: "#5E4B8B", // You can replace this with a gradient for more depth
+  backgroundColor: "#5E4B8B", 
 },
 });
 

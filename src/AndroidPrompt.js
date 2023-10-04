@@ -19,7 +19,7 @@ function AndroidPrompt(props, ref) {
   React.useEffect(() => {
     if (ref) {
       ref.current = {
-        setVisible: _setVisible, // client codes can only access _visible
+        setVisible: _setVisible,
         setHintText,
       };
     }
@@ -27,14 +27,14 @@ function AndroidPrompt(props, ref) {
 
   React.useEffect(() => {
     if (_visible) {
-      setVisible(true); // set to visible first, then do transition
+      setVisible(true);
       Animated.timing(animValue, {
         duration: 300,
         toValue: 1,
         useNativeDriver: true,
       }).start();
     } else {
-      Animated.timing(animValue, { // do transition first, then set to invisible
+      Animated.timing(animValue, {
         duration: 300,
         toValue: 0,
         useNativeDriver: true,
@@ -43,7 +43,7 @@ function AndroidPrompt(props, ref) {
         setHintText('');
       });
     }
-  }, [_visible, animValue]); // detect _visible change, use it to drive our animation
+  }, [_visible, animValue]);
 
   const backdropAnimStyle = {
     opacity: animValue,
@@ -52,7 +52,7 @@ function AndroidPrompt(props, ref) {
   const promptAnimStyle = {
     transform: [
       {
-        translateY: animValue.interpolate({ // for the slide-up effect
+        translateY: animValue.interpolate({
           inputRange: [0, 1],
           outputRange: [500, 0],
         }),
